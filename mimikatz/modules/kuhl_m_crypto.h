@@ -15,6 +15,8 @@
 #include "../modules/kull_m_file.h"
 #include "../modules/kull_m_registry.h"
 
+#include "crypto/kuhl_m_crypto_extractor.h"
+
 typedef BOOL			(WINAPI * PCP_EXPORTKEY)					(IN HCRYPTPROV hProv, IN HCRYPTKEY hKey, IN HCRYPTKEY hPubKey, IN DWORD dwBlobType, IN DWORD dwFlags, OUT LPBYTE pbData, IN OUT LPDWORD pcbDataLen);
 
 typedef struct _KUHL_M_CRYPTO_DWORD_TO_DWORD {
@@ -62,6 +64,8 @@ NTSTATUS kuhl_m_crypto_c_cert_to_hw(int argc, wchar_t * argv[]);
 NTSTATUS kuhl_m_crypto_p_capi(int argc, wchar_t * argv[]);
 NTSTATUS kuhl_m_crypto_p_cng(int argc, wchar_t * argv[]);
 
+NTSTATUS kuhl_m_crypto_extract(int argc, wchar_t * argv[]);
+
 BOOL WINAPI kuhl_m_crypto_l_stores_enumCallback_print(const void *pvSystemStore, DWORD dwFlags, PCERT_SYSTEM_STORE_INFO pStoreInfo, void *pvReserved, void *pvArg);
 
 void kuhl_m_crypto_printKeyInfos(HCRYPTPROV_OR_NCRYPT_KEY_HANDLE monProv, HCRYPTKEY maCle);
@@ -75,3 +79,17 @@ void kuhl_m_crypto_l_keys_cng(LPCWSTR szContainer, LPCWSTR szProvider, DWORD dwF
 void kuhl_m_crypto_l_mdr(LPCWSTR szMdr, SCARDCONTEXT ctxScard, SCARDHANDLE hScard, LPCWSTR szModel, LPCBYTE pbAtr, DWORD cbAtr);
 DWORD kuhl_m_crypto_l_sc_provtypefromname(LPCWSTR szProvider);
 PWSTR kuhl_m_crypto_l_sc_containerFromReader(LPCWSTR reader);
+
+typedef struct _KIWI_CRYPT_SEARCH {
+	PKULL_M_MEMORY_HANDLE hMemory;
+	WORD Machine;
+	KIWI_CRYPTKEY32 ProcessKiwiCryptKey32;
+#ifdef _M_X64
+	KIWI_CRYPTKEY64 ProcessKiwiCryptKey64;
+#endif
+	BOOL bAllProcessKiwiCryptKey;
+	DWORD myPid;
+	DWORD prevPid;
+	DWORD currPid;
+	PCUNICODE_STRING processName;
+} KIWI_CRYPT_SEARCH, *PKIWI_CRYPT_SEARCH;
