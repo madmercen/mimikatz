@@ -1,3 +1,10 @@
+# mimikatz reflective mod
+
+**`mimikatz`** with 'ReflectiveDLL' build target made by Yegor Bayev @kodx.
+Microsoft Visual Studio 2013 required.
+
+Next is original README.
+
 # mimikatz
 
 **`mimikatz`** is a tool I've made to learn `C` and make somes experiments with Windows security.

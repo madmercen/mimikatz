@@ -31,6 +31,10 @@
 #include "modules/kuhl_m_iis.h"
 #include "modules/kuhl_m_rpc.h"
 
+#ifdef _REFLECTIVEDLL
+#include "ReflectiveLoaderSimple.h"
+#endif
+
 #include <io.h>
 #include <fcntl.h>
 #define DELAYIMP_INSECURE_WRITABLE_HOOKS
