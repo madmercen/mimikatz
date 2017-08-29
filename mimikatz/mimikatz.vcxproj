@@ -72,7 +72,8 @@
     <LibraryPath>$(SolutionDir)lib\$(Platform);$(LibraryPath)</LibraryPath>
     <TargetName Condition="'$(Configuration)' == 'Release'">$(ProjectName)-$(Platform)</TargetName>
     <TargetName Condition="'$(Configuration)' == 'Second_Release_PowerShell'">powerkatz-$(Platform)</TargetName>
-    <TargetName Condition="'$(Configuration)'=='ReflectiveDLL'">$(ProjectName)-$(Configuration)-$(Platform)</TargetName>
+    <TargetName Condition="'$(Configuration)' == 'ReflectiveDLL'">$(ProjectName)-$(Configuration)-$(Platform)</TargetName>
+	<TargetName Condition="'$(Configuration)' == 'Simple_DLL'">$(ProjectName)-$(Configuration)-$(Platform)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>

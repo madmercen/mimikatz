@@ -34,18 +34,27 @@ const KUHL_M * mimikatz_modules[] = {
 int wmain(int argc, wchar_t * argv[])
 {
 	NTSTATUS status = STATUS_SUCCESS;
-	int i;
-#ifndef _POWERKATZ
+    int i, start_index = MIMIKATZ_AUTO_COMMAND_START;
+    BOOL is_cycle = 0;
+    if (argc > MIMIKATZ_AUTO_COMMAND_START) {
+        start_index = (_wcsicmp(argv[MIMIKATZ_AUTO_COMMAND_START], L"cycle") == 0) ? MIMIKATZ_AUTO_COMMAND_START + 1 : MIMIKATZ_AUTO_COMMAND_START;
+        is_cycle = 1;
+    }
+
+#ifndef _WINDLL
 	size_t len;
 	wchar_t input[0xffff];
-#endif
-	mimikatz_begin();
-	for(i = MIMIKATZ_AUTO_COMMAND_START ; (i < argc) && (status != STATUS_FATAL_APP_EXIT) ; i++)
-	{
-		kprintf(L"\n" MIMIKATZ L"(" MIMIKATZ_AUTO_COMMAND_STRING L") # %s\n", argv[i]);
-		status = mimikatz_dispatchCommand(argv[i]);
-	}
-#ifndef _POWERKATZ
+#endif // _WINDLL
+
+    mimikatz_begin();
+    i = start_index;
+    while ((i < argc) && (status != STATUS_FATAL_APP_EXIT)) {
+        kprintf(L"\n" MIMIKATZ L"(" MIMIKATZ_AUTO_COMMAND_STRING L") # %s\n", argv[i]);
+        status = mimikatz_dispatchCommand(argv[i]);
+        i = (is_cycle && (i == argc - 1)) ? start_index : i + 1;
+    }
+
+#ifndef _WINDLL
 	while (status != STATUS_FATAL_APP_EXIT)
 	{
 		kprintf(L"\n" MIMIKATZ L" # "); fflush(stdin);
@@ -57,7 +66,7 @@ int wmain(int argc, wchar_t * argv[])
 			status = mimikatz_dispatchCommand(input);
 		}
 	}
-#endif
+#endif // _WINDLL
 	mimikatz_end();
 	return STATUS_SUCCESS;
 }
@@ -65,7 +74,7 @@ int wmain(int argc, wchar_t * argv[])
 void mimikatz_begin()
 {
 	kull_m_output_init();
-#ifndef _POWERKATZ
+#ifndef _WINDLL
 	SetConsoleTitle(MIMIKATZ L" " MIMIKATZ_VERSION L" " MIMIKATZ_ARCH L" (oe.eo)");
 	SetConsoleCtrlHandler(HandlerRoutine, TRUE);
 #endif
@@ -82,7 +91,7 @@ void mimikatz_begin()
 void mimikatz_end()
 {
 	mimikatz_initOrClean(FALSE);
-#ifndef _POWERKATZ
+#ifndef _WINDLL
 	SetConsoleCtrlHandler(HandlerRoutine, FALSE);
 #endif
 	kull_m_output_clean();
@@ -135,7 +144,7 @@ NTSTATUS mimikatz_initOrClean(BOOL Init)
 	{
 		kull_m_asn1_term();
 		CoUninitialize();
-		kull_m_output_file(NULL);
+        kull_m_output_file(NULL, L"a");
 	}
 	return STATUS_SUCCESS;
 }

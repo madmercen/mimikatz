@@ -69,7 +69,7 @@ void kprintf_inputline(PCWCHAR format, ...)
 	va_end(args);
 }
 
-BOOL kull_m_output_file(PCWCHAR file)
+BOOL kull_m_output_file(PCWCHAR file, PCWCHAR mode)
 {
 	BOOL status = FALSE;
 	FILE * newlog = NULL;
@@ -77,7 +77,7 @@ BOOL kull_m_output_file(PCWCHAR file)
 	if(file)
 #pragma warning(push)
 #pragma warning(disable:4996)
-		newlog = _wfopen(file, L"a"); // XP does not like _wfopen_s
+		newlog = _wfopen(file, mode); // XP does not like _wfopen_s
 #pragma warning(pop)
 	if(newlog || !file)
 	{
@@ -92,11 +92,9 @@ int previousStdOut, previousStdErr;
 UINT previousConsoleOutput;
 void kull_m_output_init()
 {
-#ifndef _POWERKATZ
 #ifndef _WINDLL
 	previousStdOut = _setmode(_fileno(stdout), _O_U8TEXT);
 	previousStdErr = _setmode(_fileno(stderr), _O_U8TEXT);
-#endif
 	previousConsoleOutput = GetConsoleOutputCP();
 	SetConsoleOutputCP(CP_UTF8);
 #endif
@@ -104,11 +102,9 @@ void kull_m_output_init()
 
 void kull_m_output_clean()
 {
-#ifndef _POWERKATZ
 #ifndef _WINDLL
 	_setmode(_fileno(stdout), previousStdOut);
 	_setmode(_fileno(stderr), previousStdErr);
-#endif
 	SetConsoleOutputCP(previousConsoleOutput);
 #endif
 }

@@ -85,7 +85,6 @@ build/
 
 # testbuild
 !/testbuild
-!/testbuild/*.exe
 !/testbuild/*.ps1
 
 x64/

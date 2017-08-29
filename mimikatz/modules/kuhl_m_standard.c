@@ -12,6 +12,7 @@ const KUHL_M_C kuhl_m_c_standard[] = {
 	{kuhl_m_standard_answer,	L"answer",		L"Answer to the Ultimate Question of Life, the Universe, and Everything"},
 	{kuhl_m_standard_coffee,	L"coffee",		L"Please, make me a coffee!"},
 	{kuhl_m_standard_sleep,		L"sleep",		L"Sleep an amount of milliseconds"},
+    {kuhl_m_standard_waitfor,   L"waitfor",     L"Sleep until sepcific time of a day" },
 	{kuhl_m_standard_log,		L"log",			L"Log mimikatz input/output to file"},
 	{kuhl_m_standard_base64,	L"base64",		L"Switch file input/output base64"},
 	{kuhl_m_standard_version,	L"version",		L"Display some version informations"},
@@ -69,11 +70,50 @@ NTSTATUS kuhl_m_standard_sleep(int argc, wchar_t * argv[])
 	return STATUS_SUCCESS;
 }
 
+NTSTATUS kuhl_m_standard_waitfor(int argc, wchar_t * argv[])
+{
+    WORD wHour = (WORD) (argc ? wcstoul(argv[0], NULL, 0) : 23);
+    WORD wMinute = (WORD) ((argc > 1) ? wcstoul(argv[1], NULL, 0) : 59);
+    wHour = (wHour > 23) ? 23 : wHour;
+    wMinute = (wMinute > 59) ? 59 : wMinute;
+
+    HANDLE hTimer = NULL;
+    LARGE_INTEGER liDueTime;
+    SYSTEMTIME st = { 0 };
+    // Local filetime
+    FILETIME lft = { 0 };
+    // UTC filetime
+    FILETIME uft = { 0 };
+    GetLocalTime(&st);
+    st.wDay = ((wHour <= st.wHour) && (wMinute <= st.wMinute)) ? st.wDay + 1 : st.wDay;
+    st.wHour = wHour;
+    st.wMinute = wMinute;
+    // Set due time seconds to 0
+    st.wSecond = 0;
+
+    SystemTimeToFileTime(&st, &lft);
+    LocalFileTimeToFileTime(&lft, &uft);
+    liDueTime.QuadPart = (__int64) uft.dwLowDateTime + ((__int64) (uft.dwHighDateTime) << 32LL);
+    kprintf(L"Waiting for %04d-%02d-%02d %02d:%02d:%02d\n", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+
+    if (hTimer = CreateWaitableTimer(NULL, TRUE, NULL))
+        SetWaitableTimer(hTimer, &liDueTime, 0, NULL, NULL, 0) ? WaitForSingleObject(hTimer, INFINITE) : PRINT_ERROR_AUTO(L"SetWaitableTimer(init)");
+    else
+        PRINT_ERROR_AUTO(L"CreateWaitableTimer(init)");
+
+    kprintf(L"Waitfor end!\n");
+    return STATUS_SUCCESS;
+}
+
 NTSTATUS kuhl_m_standard_log(int argc, wchar_t * argv[])
 {
-	PCWCHAR filename = (kull_m_string_args_byName(argc, argv, L"stop", NULL, NULL) ? NULL : (argc ? argv[0] : MIMIKATZ_DEFAULT_LOG));
-	kprintf(L"Using \'%s\' for logfile : %s\n", filename, kull_m_output_file(filename) ? L"OK" : L"KO");
-	return STATUS_SUCCESS;
+    BOOL is_stop = kull_m_string_args_byName(argc, argv, L"stop", NULL, NULL);
+    BOOL is_clear = kull_m_string_args_byName(argc, argv, L"clear", NULL, NULL);
+    BOOL is_first_clear = (argc ? (((_wcsicmp(argv[0], L"/clear") == 0) || (_wcsicmp(argv[0], L"-clear") == 0)) ? 1 : 0) : 0);
+    PCWCHAR filename = (is_stop ? NULL : ((argc && !is_first_clear) ? argv[0] : MIMIKATZ_DEFAULT_LOG));
+    PCWCHAR mode = (is_clear ? L"w" : L"a");
+    kprintf(L"Using \'%s\' for logfile with mode \'%s\' : %s\n", filename, mode, kull_m_output_file(filename, mode) ? L"OK" : L"KO");
+    return STATUS_SUCCESS;
 }
 
 NTSTATUS kuhl_m_standard_base64(int argc, wchar_t * argv[])
